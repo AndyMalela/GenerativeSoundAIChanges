@@ -1,0 +1,16 @@
+click==8.1.8
+grpcio==1.62.3
+grpcio-tools==1.62.3
+loguru==0.7.3
+markdown-it-py==3.0.0
+mdurl==0.1.2
+numpy==1.26.4
+protobuf==4.25.6
+pyftg==2.3
+pyftg-sound==0.3
+Pygments==2.19.1
+python-dotenv==1.0.1
+rich==14.0.0
+shellingham==1.5.4
+typer==0.15.2
+typing_extensions==4.13.2
