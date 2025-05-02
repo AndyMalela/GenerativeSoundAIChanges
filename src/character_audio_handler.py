@@ -48,6 +48,31 @@ class CharacterAudioHandler:
         self.source_heart_beat = self.sound_manager.create_audio_source(source_attrs)
         self.current_projectiles = {}
         self.source_projectiles_by_id = {}
+        
+        self.previous_enemy_side = None
+        self.source_side_alert = self.sound_manager.create_audio_source(source_attrs)
+        
+    def update_enemy_side_audio(self) -> None:
+        if not hasattr(self, "character") or not hasattr(self, "opp_character"):
+            return
+
+        player_x = self.character.x
+        enemy_x = self.opp_character.x
+
+        current_side = "LEFT" if enemy_x < player_x else "RIGHT"
+
+        if current_side != self.previous_enemy_side:
+            sound_file = f"{current_side.upper()}.wav"
+            self.sound_manager.play(
+                self.source_side_alert,
+                self.sound_manager.get_sound_buffer(sound_file),
+                player_x,
+                self.character.y,
+                False 
+            )
+            logger.info(f"Enemy switched side to {current_side.upper()}, played {sound_file}")
+            self.previous_enemy_side = current_side
+
 
     def update_projectile(self):
         for projectile_id in self.source_projectiles_by_id:
@@ -182,6 +207,8 @@ class CharacterAudioHandler:
         self.check_border_alert()
         self.check_heart_beat()
         self.check_energy_charge()
+        self.update_enemy_side_audio()
+        
 
         if not self.character.state is State.CROUCH:
             self.temp = " "
@@ -205,6 +232,7 @@ class CharacterAudioHandler:
         self.previous_bottom = STAGE_HEIGHT
         self.heart_beat_flag = False
         self.current_projectiles = {}
+        self.previous_enemy_side = None
         for source in self.source_projectiles_by_id.values():
             self.sound_manager.stop(source)
             self.sound_manager.remove_source(source)
