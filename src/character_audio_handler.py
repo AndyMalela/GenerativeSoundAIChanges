@@ -52,6 +52,10 @@ class CharacterAudioHandler:
         self.previous_enemy_side = None
         self.source_side_alert = self.sound_manager.create_audio_source(source_attrs)
         
+        self.source_timer_alert = self.sound_manager.create_audio_source(source_attrs)
+        self.timer_alert_played = False
+
+        
     def update_enemy_side_audio(self) -> None:
         if not hasattr(self, "character") or not hasattr(self, "opp_character"):
             return
@@ -74,6 +78,22 @@ class CharacterAudioHandler:
             self.previous_enemy_side = current_side
 
 
+    def check_timer_alert(self):
+        total_match_frames = 60 * 60
+        remaining_frames = total_match_frames - self.current_frame_number
+
+        if remaining_frames <= 360 and not self.timer_alert_played:
+            self.timer_alert_played = True
+            alert_file = "5SECTIMED.wav"
+            self.sound_manager.play(
+                self.source_timer_alert,
+                self.sound_manager.get_sound_buffer(alert_file),
+                self.character.x,
+                self.character.y,
+                False
+            )
+            logger.info(f"Play sound: {alert_file} at ({self.character.x}, {self.character.y}) on frame {self.current_frame_number}")
+    
     def update_projectile(self):
         for projectile_id in self.source_projectiles_by_id:
             for _, proj in enumerate(self.character.projectile_attack):
@@ -208,7 +228,7 @@ class CharacterAudioHandler:
         self.check_heart_beat()
         self.check_energy_charge()
         self.update_enemy_side_audio()
-        
+        self.check_timer_alert()
 
         if not self.character.state is State.CROUCH:
             self.temp = " "
@@ -233,6 +253,7 @@ class CharacterAudioHandler:
         self.heart_beat_flag = False
         self.current_projectiles = {}
         self.previous_enemy_side = None
+        self.timer_alert_played = False
         for source in self.source_projectiles_by_id.values():
             self.sound_manager.stop(source)
             self.sound_manager.remove_source(source)
