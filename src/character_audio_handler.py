@@ -46,6 +46,8 @@ class CharacterAudioHandler:
         self.source_energy_change = self.sound_manager.create_audio_source(source_attrs)
         self.source_border_alert = self.sound_manager.create_audio_source(source_attrs)
         self.source_heart_beat = self.sound_manager.create_audio_source(source_attrs)
+        self.source_breathing = self.sound_manager.create_audio_source(source_attrs)
+        
         self.current_projectiles = {}
         self.source_projectiles_by_id = {}
         
@@ -212,8 +214,8 @@ class CharacterAudioHandler:
                     self.sound_manager.play(self.source_border_alert, self.sound_manager.get_sound_buffer("BorderAlert.wav"), STAGE_WIDTH, 0, False)
                     logger.info(f"Play sound: BorderAlert.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, 0)")
 
-    def check_heart_beat(self):
-        if self.character.hp < 50 and not self.heart_beat_flag:
+    """def check_heart_beat(self):   
+        if self.character.hp < 200 and not self.heart_beat_flag:
             self.heart_beat_flag = True
             if not self.sound_manager.is_playing(self.source_heart_beat):
                 if self.player:
@@ -221,7 +223,51 @@ class CharacterAudioHandler:
                     logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at (0, 0)")
                 else:
                     self.sound_manager.play(self.source_heart_beat, self.sound_manager.get_sound_buffer("Heartbeat.wav"), STAGE_WIDTH, 0, False)
-                    logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, {0})")
+                    logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, {0})")"""
+    def check_heart_beat(self):
+        hp = self.character.hp
+        if hp >= 200:
+            self.heart_beat_flag = False
+            return
+
+        # Determine frequency based on HP
+        if hp < 50:
+            interval = 15
+        elif hp < 100:
+            interval = 30
+        else:  # 100 <= hp < 200
+            interval = 60
+
+
+        # Only play heartbeat every 'interval' frames
+        if self.current_frame_number % interval == 0:
+            position_x = 0 if self.player else STAGE_WIDTH
+            if not self.sound_manager.is_playing(self.source_heart_beat):
+                # Increase the volume (gain) here
+                self.sound_manager.set_source_gain(self.source_heart_beat, 2.0)  # Adjust the gain as needed
+                # Play heartbeat sound without affecting others
+                self.sound_manager.play(
+                    self.source_heart_beat,
+                    self.sound_manager.get_sound_buffer("Heartbeat.wav"),
+                    position_x,
+                    0,
+                    False
+                )
+                logger.info(f"Play dynamic heartbeat at HP={hp}, interval={interval}, frame={self.current_frame_number}")
+        
+        if hp < 150:
+            position_x = 0 if self.player else STAGE_WIDTH  # Ensure correct position
+            if not self.sound_manager.is_playing(self.source_breathing):
+                # Set a separate gain for the breathing sound to avoid conflicts
+                self.sound_manager.set_source_gain(self.source_breathing, 0.5)
+                self.sound_manager.play(
+                    self.source_breathing,
+                    self.sound_manager.get_sound_buffer("Breath.wav"),
+                    position_x,
+                    0,
+                    False
+                )
+                logger.info(f"Play breathing sound at HP={hp}, frame={self.current_frame_number}")
 
     def check_energy_charge(self):
         if self.character.energy > self.pre_energy + 50:
