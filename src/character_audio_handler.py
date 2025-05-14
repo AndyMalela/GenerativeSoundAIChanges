@@ -70,7 +70,7 @@ class CharacterAudioHandler:
                 0,
                 False
             )
-            logger.info(f"Play sound: RoundStart.wav on frame 0 at ({self.character.x}, {self.character.y})")
+            logger.info(f"Play sound: RoundStart.wav on frame 0 ")
 
         
     def update_enemy_side_audio(self) -> None:
@@ -99,7 +99,7 @@ class CharacterAudioHandler:
         total_match_frames = 60 * 60
         remaining_frames = total_match_frames - self.current_frame_number
 
-        if remaining_frames <= 360 and not self.timer_alert_played: # 360 = 5 seconds * 60
+        if remaining_frames <= 300 and not self.timer_alert_played: # 300 = 5 seconds * 60
             self.timer_alert_played = True
             alert_file = "5SECTIMED.wav"
             self.sound_manager.play(
