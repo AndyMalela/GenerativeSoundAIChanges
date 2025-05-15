@@ -74,6 +74,8 @@ class CharacterAudioHandler:
 
         
     def update_enemy_side_audio(self) -> None:
+        if not self.player:  # Only run for Player 1 (or whichever you designate)
+            return 
         if not hasattr(self, "character") or not hasattr(self, "opp_character"):
             return
 
@@ -82,7 +84,9 @@ class CharacterAudioHandler:
 
         current_side = "LEFT" if enemy_x < player_x else "RIGHT"
 
-        if current_side != self.previous_enemy_side:
+        if self.previous_enemy_side is None:
+            self.previous_enemy_side = current_side  # Set without playing audio
+        elif current_side != self.previous_enemy_side:
             sound_file = f"{current_side.upper()}.wav"
             self.sound_manager.play(
                 self.source_side_alert,
@@ -321,7 +325,7 @@ class CharacterAudioHandler:
         self.run_action(self.character.action)
         self.update_projectile()
 
-    def reset(self):
+    def reset(self) -> None:
         self.pre_energy = 0
         self.temp = ' '
         self.temp2 = ' '
