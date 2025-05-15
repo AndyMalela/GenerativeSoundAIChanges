@@ -158,6 +158,21 @@ class CharacterAudioHandler:
         x = self.character.x
         y = self.character.y
 
+        if not hasattr(self, "previous_action_name"):
+            self.previous_action_name = ""
+
+        if action_name in ["STAND_D_DF_FA", "STAND_D_DF_FB", "STAND_D_DF_FC"]:
+            if self.previous_action_name not in ["STAND_D_DF_FA", "STAND_D_DF_FB", "STAND_D_DF_FC"]:
+                self.sound_manager.play(
+                    self.source_default, 
+                    self.sound_manager.get_sound_buffer("MaleFire.wav"),
+                    self.character.x, 
+                    self.character.y, 
+                    False
+                )
+                logger.info(f"Play pre-cast sound: MaleFire.wav on frame {self.current_frame_number} at ({self.character.x}, {self.character.y})")
+
+
         if action_name in ["STAND", "AIR"]:
             self.temp = ' '
             self.temp2 = ' '
