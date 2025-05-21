@@ -2,7 +2,7 @@
 
 This project was a 2025 IEEE Competition entry designing accessible audio for visually impaired players in a fighting game environment 'FightingICE'. The objective of the competition is to develop spatial and functional sound design strategies that support blind and visually impaired users in experiencing a game.
 
-Details for the 'DareFightingICE' sound design competition is [here](https://cog2025.inesc-id.pt/darefightingice-ai-competition/). Details about the game itself and also the competition is [here](https://github.com/TeamFightingICE/FightingICE/tree/master/DareFightingICE/Sound) and [here](https://www.ice.ci.ritsumei.ac.jp/~ftgaic/).
+Details for the 'DareFightingICE' sound design competition is [here](https://cog2025.inesc-id.pt/darefightingice-ai-competition/). Details about the game itself and the competition rules is [here](https://github.com/TeamFightingICE/FightingICE/tree/master/DareFightingICE/Sound) and [here](https://www.ice.ci.ritsumei.ac.jp/~ftgaic/).
 
 # Installation Quick Guide (latest update 2025)
 
