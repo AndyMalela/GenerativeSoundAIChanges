@@ -232,8 +232,8 @@ class CharacterAudioHandler:
                 else:
                     self.sound_manager.play(self.source_border_alert, self.sound_manager.get_sound_buffer("BorderAlert.wav"), STAGE_WIDTH, 0, False)
                     logger.info(f"Play sound: BorderAlert.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, 0)")
-
-    """def check_heart_beat(self):   
+    
+    def check_heart_beat(self):   
         if self.character.hp < 200 and not self.heart_beat_flag:
             self.heart_beat_flag = True
             if not self.sound_manager.is_playing(self.source_heart_beat):
@@ -242,7 +242,8 @@ class CharacterAudioHandler:
                     logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at (0, 0)")
                 else:
                     self.sound_manager.play(self.source_heart_beat, self.sound_manager.get_sound_buffer("Heartbeat.wav"), STAGE_WIDTH, 0, False)
-                    logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, {0})")"""
+                    logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, {0})")
+    
     def check_heart_beat(self):
         hp = self.character.hp
         if hp >= 200:
