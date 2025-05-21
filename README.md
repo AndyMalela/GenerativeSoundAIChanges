@@ -1,4 +1,8 @@
-# Generative-Sound-AI
+# IEEE Game Sound Design for Accessibility
+
+This project was a 2025 IEEE Competition entry designing accessible audio for visually impaired players in a game environment. The objective of the competition is to develop spatial and functional sound design strategies that support blind and visually impaired users in experiencing a game.
+
+# Installation Quick Guide (latest update 2025)
 
 ## Prerequisites
 
