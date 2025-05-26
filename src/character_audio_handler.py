@@ -35,7 +35,9 @@ class CharacterAudioHandler:
     source_projectiles_by_id: Dict[str, AudioSource]
     source_energy_change: AudioSource
     source_border_alert: AudioSource
+    source_border_alert_left: AudioSource
     source_heart_beat: AudioSource
+    source_projectile_hit: AudioSource
 
     def __init__(self, sound_manager: SoundManager, player: bool) -> None:
         self.sound_manager = sound_manager
@@ -45,9 +47,11 @@ class CharacterAudioHandler:
         self.source_landing = self.sound_manager.create_audio_source(source_attrs)
         self.source_energy_change = self.sound_manager.create_audio_source(source_attrs)
         self.source_border_alert = self.sound_manager.create_audio_source(source_attrs)
+        self.source_border_alert_left = self.sound_manager.create_audio_source(source_attrs)
         self.source_heart_beat = self.sound_manager.create_audio_source(source_attrs)
-        self.source_breathing = self.sound_manager.create_audio_source(source_attrs)
-        
+        self.source_beeping = self.sound_manager.create_audio_source(source_attrs)
+        self.source_projectile_hit = self.sound_manager.create_audio_source(source_attrs)
+
         self.current_projectiles = {}
         self.source_projectiles_by_id = {}
         
@@ -63,13 +67,13 @@ class CharacterAudioHandler:
     def check_round_start(self):
         if self.current_frame_number == 0 and not self.round_start_played:
             self.round_start_played = True
-            self.sound_manager.play(
-                self.source_round_start,
-                self.sound_manager.get_sound_buffer("ROUNDSTART.wav"),
-                0,
-                0,
-                False
-            )
+            # self.sound_manager.play(
+            #     self.source_round_start,
+            #     self.sound_manager.get_sound_buffer("ROUNDSTART.wav"),
+            #     0,
+            #     0,
+            #     False
+            # )
             logger.info(f"Play sound: RoundStart.wav on frame 0 ")
 
         
@@ -109,7 +113,7 @@ class CharacterAudioHandler:
             self.sound_manager.play(
                 self.source_timer_alert,
                 self.sound_manager.get_sound_buffer(alert_file),
-                0,
+                STAGE_WIDTH//2,
                 0,
                 False
             )
@@ -164,19 +168,7 @@ class CharacterAudioHandler:
 
         if not hasattr(self, "previous_action_name"):
             self.previous_action_name = ""
-
-        if action_name in ["STAND_D_DF_FA", "STAND_D_DF_FB", "STAND_D_DF_FC"]:
-            if self.previous_action_name not in ["STAND_D_DF_FA", "STAND_D_DF_FB", "STAND_D_DF_FC"]:
-                self.sound_manager.play(
-                    self.source_default, 
-                    self.sound_manager.get_sound_buffer("MaleFire.wav"),
-                    self.character.x, 
-                    self.character.y, 
-                    False
-                )
-                logger.info(f"Play pre-cast sound: MaleFire.wav on frame {self.current_frame_number} at ({self.character.x}, {self.character.y})")
-
-
+            
         if action_name in ["STAND", "AIR"]:
             self.temp = ' '
             self.temp2 = ' '
@@ -212,10 +204,45 @@ class CharacterAudioHandler:
                         self.current_projectiles[projectile_id] = proj
                         projectile_source = self.sound_manager.create_audio_source(source_attrs)
                         self.source_projectiles_by_id[projectile_id] = projectile_source
-                        self.sound_manager.play(projectile_source, self.sound_manager.get_sound_buffer(sound_name), x, y, True)
+                        self.sound_manager.play(projectile_source, self.sound_manager.get_sound_buffer(sound_name), x, y, False)
                         logger.info(f"Play sound: {sound_name} on frame {self.current_frame_number} at ({x}, {y})")
                         self.temp3 = sound_name
                         break
+                    
+    def check_projectile_collision(self):
+        
+        if not self.player:  # Only run for Player 1 (or whichever you designate)
+            return 
+        if not hasattr(self, "character") or not hasattr(self, "opp_character"):
+            return
+        
+        for proj in self.character.projectile_attack:
+            if not proj.empty_flag:
+                # AABB collision with opp_character
+                if (proj.current_hit_area.left < self.opp_character.right and
+                    proj.current_hit_area.right > self.opp_character.left and
+                    proj.current_hit_area.top < self.opp_character.bottom and
+                    proj.current_hit_area.bottom > self.opp_character.top):
+
+                    # Mark projectile as used
+                    proj.empty_flag = True
+
+                    # Play hit sound
+                    buffer = self.sound_manager.get_sound_buffer("MaleFire_Hit.wav")
+                    if buffer is not None:
+                        hit_x = (proj.current_hit_area.left + proj.current_hit_area.right) // 2
+                        hit_y = (proj.current_hit_area.top + proj.current_hit_area.bottom) // 2
+                        self.sound_manager.play(
+                            self.source_projectile_hit,  # Initialize this in __init__!
+                            buffer,
+                            self.opp_character.x, self.opp_character.y, False
+                        )
+                    else:
+                        print("ERROR: MaleFire_Hit.wav sound buffer not loaded!")
+                    logger.info(
+                        f"MaleFire_Hit.wav played on projectile hit at frame {self.current_frame_number} at "
+                        f"({self.opp_character.x}, {self.opp_character.y})"
+                    )
     
     def check_landing(self):
         if self.character.bottom >= STAGE_HEIGHT and self.character.bottom != self.previous_bottom:
@@ -224,70 +251,85 @@ class CharacterAudioHandler:
         self.previous_bottom = self.character.bottom
 
     def check_border_alert(self):
-        if (self.character.left == 0 and self.character.speed_x < 0) or (self.character.right == STAGE_WIDTH and self.character.speed_x > 0):
-            if not self.sound_manager.is_playing(self.source_border_alert):
-                if self.character.left == 0:
-                    self.sound_manager.play(self.source_border_alert, self.sound_manager.get_sound_buffer("BorderAlert.wav"), 0, 0, False)
-                    logger.info(f"Play sound: BorderAlert.wav on frame {self.current_frame_number} at (0, 0)")
-                else:
-                    self.sound_manager.play(self.source_border_alert, self.sound_manager.get_sound_buffer("BorderAlert.wav"), STAGE_WIDTH, 0, False)
-                    logger.info(f"Play sound: BorderAlert.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, 0)")
-    
-    def check_heart_beat(self):   
-        if self.character.hp < 200 and not self.heart_beat_flag:
-            self.heart_beat_flag = True
-            if not self.sound_manager.is_playing(self.source_heart_beat):
-                if self.player:
-                    self.sound_manager.play(self.source_heart_beat, self.sound_manager.get_sound_buffer("Heartbeat.wav"), 0, 0, False)
-                    logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at (0, 0)")
-                else:
-                    self.sound_manager.play(self.source_heart_beat, self.sound_manager.get_sound_buffer("Heartbeat.wav"), STAGE_WIDTH, 0, False)
-                    logger.info(f"Play sound: Heartbeat.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, {0})")
-    
-    def check_heart_beat(self):
-        hp = self.character.hp
-        if hp >= 200:
-            self.heart_beat_flag = False
+        if not self.player:  # Only run for Player 1 (or whichever you designate)
+            return 
+        if not hasattr(self, "character") or not hasattr(self, "opp_character"):
             return
+        
+        if (self.character.left == 0 and self.character.speed_x < 0):
+            if not self.sound_manager.is_playing(self.source_border_alert_left):
+                self.sound_manager.play(
+                    self.source_border_alert_left,
+                    self.sound_manager.get_sound_buffer("Border_Alert.wav"),
+                    0, 0, False
+                )
+                logger.info(f"Play sound: Border_Alert.wav on frame {self.current_frame_number} at (0, 0)")
 
-        # Determine frequency based on HP
+        elif (self.character.right == STAGE_WIDTH and self.character.speed_x > 0):
+            if not self.sound_manager.is_playing(self.source_border_alert):
+                self.sound_manager.play(
+                    self.source_border_alert,
+                    self.sound_manager.get_sound_buffer("BorderAlert.wav"),
+                    STAGE_WIDTH, 0, False
+                )
+                logger.info(f"Play sound: BorderAlert.wav on frame {self.current_frame_number} at ({STAGE_WIDTH}, 0)")
+    
+
+    def check_heart_beat(self):
+        if not self.player:  # Only run for Player 1 (or whichever you designate)
+            return 
+        if not hasattr(self, "character") or not hasattr(self, "opp_character"):
+            return
+    
+    
+        hp = self.character.hp
+        position_x = 0 if self.player else STAGE_WIDTH
+
+        # --- Below 50: Only Beeping ---
         if hp < 50:
-            interval = 15
-        elif hp < 100:
-            interval = 30
-        else:  # 100 <= hp < 200
-            interval = 60
+            # Stop heartbeat if playing
+            if self.sound_manager.is_playing(self.source_heart_beat):
+                self.sound_manager.stop(self.source_heart_beat)
+                logger.info(f"Stop heartbeat at HP={hp}, frame={self.current_frame_number}")
 
+            # Start beeping if not already playing
+            if not self.sound_manager.is_playing(self.source_beeping):
+                self.sound_manager.set_source_gain(self.source_beeping, 0.5)
+                self.sound_manager.play(
+                    self.source_beeping,
+                    self.sound_manager.get_sound_buffer("Beep.wav"),
+                    STAGE_WIDTH//2,
+                    0,
+                    True  # Loop enabled
+                )
+                logger.info(f"Start looping beeping at HP={hp}, frame={self.current_frame_number}")
+        # --- 50 <= HP < 200: Only Heartbeat ---
+        elif hp < 200:
+            # Stop beeping if playing
+            if self.sound_manager.is_playing(self.source_beeping):
+                self.sound_manager.stop(self.source_beeping)
+                logger.info(f"Stop beeping at HP={hp}, frame={self.current_frame_number}")
 
-        # Only play heartbeat every 'interval' frames
-        if self.current_frame_number % interval == 0:
-            position_x = 0 if self.player else STAGE_WIDTH
+            # Start heartbeat if not already playing
             if not self.sound_manager.is_playing(self.source_heart_beat):
-                # Increase the volume (gain) here
-                self.sound_manager.set_source_gain(self.source_heart_beat, 2.0)  # Adjust the gain as needed
-                # Play heartbeat sound without affecting others
+                self.sound_manager.set_source_gain(self.source_heart_beat, 3.0)
                 self.sound_manager.play(
                     self.source_heart_beat,
                     self.sound_manager.get_sound_buffer("Heartbeat.wav"),
-                    position_x,
+                    STAGE_WIDTH//2,
                     0,
-                    False
+                    True  # Loop enabled
                 )
-                logger.info(f"Play dynamic heartbeat at HP={hp}, interval={interval}, frame={self.current_frame_number}")
-        
-        if hp < 150:
-            position_x = 0 if self.player else STAGE_WIDTH  # Ensure correct position
-            if not self.sound_manager.is_playing(self.source_breathing):
-                # Set a separate gain for the breathing sound to avoid conflicts
-                self.sound_manager.set_source_gain(self.source_breathing, 0.5)
-                self.sound_manager.play(
-                    self.source_breathing,
-                    self.sound_manager.get_sound_buffer("Breath.wav"),
-                    position_x,
-                    0,
-                    False
-                )
-                logger.info(f"Play breathing sound at HP={hp}, frame={self.current_frame_number}")
+                logger.info(f"Start looping heartbeat at HP={hp}, frame={self.current_frame_number}")
+        # --- HP >= 200: Stop All ---
+        else:
+            if self.sound_manager.is_playing(self.source_heart_beat):
+                self.sound_manager.stop(self.source_heart_beat)
+                logger.info(f"Stop heartbeat at HP={hp}, frame={self.current_frame_number}")
+            if self.sound_manager.is_playing(self.source_beeping):
+                self.sound_manager.stop(self.source_beeping)
+                logger.info(f"Stop beeping at HP={hp}, frame={self.current_frame_number}")
+
 
     def check_energy_charge(self):
         if self.character.energy > self.pre_energy + 50:
@@ -311,6 +353,8 @@ class CharacterAudioHandler:
         self.update_enemy_side_audio()
         self.check_timer_alert()
         self.check_round_start()
+        self.check_projectile_collision()
+
 
         if not self.character.state is State.CROUCH:
             self.temp = " "
@@ -324,6 +368,7 @@ class CharacterAudioHandler:
             logger.info(f"Set source position: source_walking on frame {self.current_frame_number} at ({self.character.x}, {self.character.y})")
 
         self.run_action(self.character.action)
+        #self.run_action(self.opp_character.action)
         self.update_projectile()
 
     def reset(self) -> None:
