@@ -61,20 +61,20 @@ class CharacterAudioHandler:
         self.source_timer_alert = self.sound_manager.create_audio_source(source_attrs)
         self.timer_alert_played = False
 
-        self.source_round_start = self.sound_manager.create_audio_source(source_attrs)
-        self.round_start_played = False
+        # self.source_round_start = self.sound_manager.create_audio_source(source_attrs)
+        # self.round_start_played = False
         
-    def check_round_start(self):
-        if self.current_frame_number == 0 and not self.round_start_played:
-            self.round_start_played = True
-            # self.sound_manager.play(
-            #     self.source_round_start,
-            #     self.sound_manager.get_sound_buffer("ROUNDSTART.wav"),
-            #     0,
-            #     0,
-            #     False
-            # )
-            logger.info(f"Play sound: RoundStart.wav on frame 0 ")
+    # def check_round_start(self):
+    #     if self.current_frame_number == 0 and not self.round_start_played:
+    #         self.round_start_played = True
+    #         self.sound_manager.play(
+    #             self.source_round_start,
+    #             self.sound_manager.get_sound_buffer("ROUNDSTART.wav"),
+    #             0,
+    #             0,
+    #             False
+    #         )
+    #         logger.info(f"Play sound: RoundStart.wav on frame 0 ")
 
         
     def update_enemy_side_audio(self) -> None:
@@ -352,7 +352,7 @@ class CharacterAudioHandler:
         self.check_energy_charge()
         self.update_enemy_side_audio()
         self.check_timer_alert()
-        self.check_round_start()
+        # self.check_round_start()
         self.check_projectile_collision()
 
 
@@ -381,7 +381,7 @@ class CharacterAudioHandler:
         self.current_projectiles = {}
         self.previous_enemy_side = None
         self.timer_alert_played = False
-        self.round_start_played = False
+        # self.round_start_played = False
         for source in self.source_projectiles_by_id.values():
             self.sound_manager.stop(source)
             self.sound_manager.remove_source(source)
