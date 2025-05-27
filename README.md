@@ -43,7 +43,7 @@ echo 'export DYLD_LIBRARY_PATH="/opt/homebrew/opt/openal-soft/lib:$DYLD_LIBRARY_
 ```
 
 __3. Run the generative sound AI__
-- Boot DareFightingICE
+- Boot [DareFightingICE](https://github.com/TeamFightingICE/FightingICE/releases/tag/v7.0)
 - Execute `main.py`
 ```
 python main.py
