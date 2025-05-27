@@ -37,7 +37,7 @@ class CharacterAudioHandler:
     source_border_alert: AudioSource
     source_border_alert_left: AudioSource
     source_heart_beat: AudioSource
-    source_projectile_hit: AudioSource
+    # source_projectile_hit: AudioSource
 
     def __init__(self, sound_manager: SoundManager, player: bool) -> None:
         self.sound_manager = sound_manager
@@ -50,7 +50,7 @@ class CharacterAudioHandler:
         self.source_border_alert_left = self.sound_manager.create_audio_source(source_attrs)
         self.source_heart_beat = self.sound_manager.create_audio_source(source_attrs)
         self.source_beeping = self.sound_manager.create_audio_source(source_attrs)
-        self.source_projectile_hit = self.sound_manager.create_audio_source(source_attrs)
+        # self.source_projectile_hit = self.sound_manager.create_audio_source(source_attrs)
 
         self.current_projectiles = {}
         self.source_projectiles_by_id = {}
@@ -204,40 +204,40 @@ class CharacterAudioHandler:
                         self.current_projectiles[projectile_id] = proj
                         projectile_source = self.sound_manager.create_audio_source(source_attrs)
                         self.source_projectiles_by_id[projectile_id] = projectile_source
-                        self.sound_manager.play(projectile_source, self.sound_manager.get_sound_buffer(sound_name), x, y, False)
+                        self.sound_manager.play(projectile_source, self.sound_manager.get_sound_buffer(sound_name), x, y, True)
                         logger.info(f"Play sound: {sound_name} on frame {self.current_frame_number} at ({x}, {y})")
                         self.temp3 = sound_name
                         break
                     
-    def check_projectile_collision(self):
+    # def check_projectile_collision(self):
         
-        for proj in self.character.projectile_attack:
-            if not proj.empty_flag:
-                # AABB collision with opp_character
-                if (proj.current_hit_area.left < self.opp_character.right and
-                    proj.current_hit_area.right > self.opp_character.left and
-                    proj.current_hit_area.top < self.opp_character.bottom and
-                    proj.current_hit_area.bottom > self.opp_character.top):
+    #     for proj in self.character.projectile_attack:
+    #         if not proj.empty_flag:
+    #             # AABB collision with opp_character
+    #             if (proj.current_hit_area.left < self.opp_character.right and
+    #                 proj.current_hit_area.right > self.opp_character.left and
+    #                 proj.current_hit_area.top < self.opp_character.bottom and
+    #                 proj.current_hit_area.bottom > self.opp_character.top):
 
-                    # Mark projectile as used
-                    proj.empty_flag = True
+    #                 # Mark projectile as used
+    #                 proj.empty_flag = True
 
-                    # Play hit sound
-                    buffer = self.sound_manager.get_sound_buffer("MaleFire_Hit.wav")
-                    if buffer is not None:
-                        hit_x = (proj.current_hit_area.left + proj.current_hit_area.right) // 2
-                        hit_y = (proj.current_hit_area.top + proj.current_hit_area.bottom) // 2
-                        self.sound_manager.play(
-                            self.source_projectile_hit,  # Initialize this in __init__!
-                            buffer,
-                            self.opp_character.x, self.opp_character.y, False
-                        )
-                    else:
-                        print("ERROR: MaleFire_Hit.wav sound buffer not loaded!")
-                    logger.info(
-                        f"MaleFire_Hit.wav played on projectile hit at frame {self.current_frame_number} at "
-                        f"({self.opp_character.x}, {self.opp_character.y})"
-                    )
+    #                 # Play hit sound
+    #                 buffer = self.sound_manager.get_sound_buffer("MaleFire_Hit.wav")
+    #                 if buffer is not None:
+    #                     hit_x = (proj.current_hit_area.left + proj.current_hit_area.right) // 2
+    #                     hit_y = (proj.current_hit_area.top + proj.current_hit_area.bottom) // 2
+    #                     self.sound_manager.play(
+    #                         self.source_projectile_hit,  # Initialize this in __init__!
+    #                         buffer,
+    #                         self.opp_character.x, self.opp_character.y, False
+    #                     )
+    #                 else:
+    #                     print("ERROR: MaleFire_Hit.wav sound buffer not loaded!")
+    #                 logger.info(
+    #                     f"MaleFire_Hit.wav played on projectile hit at frame {self.current_frame_number} at "
+    #                     f"({self.opp_character.x}, {self.opp_character.y})"
+    #                 )
     
     def check_landing(self):
         if self.character.bottom >= STAGE_HEIGHT and self.character.bottom != self.previous_bottom:
@@ -348,7 +348,7 @@ class CharacterAudioHandler:
         self.update_enemy_side_audio()
         self.check_timer_alert()
         # self.check_round_start()
-        self.check_projectile_collision()
+        # self.check_projectile_collision()
 
 
         if not self.character.state is State.CROUCH:
