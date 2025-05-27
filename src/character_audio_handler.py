@@ -211,11 +211,6 @@ class CharacterAudioHandler:
                     
     def check_projectile_collision(self):
         
-        if not self.player:  # Only run for Player 1 (or whichever you designate)
-            return 
-        if not hasattr(self, "character") or not hasattr(self, "opp_character"):
-            return
-        
         for proj in self.character.projectile_attack:
             if not proj.empty_flag:
                 # AABB collision with opp_character
